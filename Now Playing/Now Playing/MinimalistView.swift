@@ -47,9 +47,12 @@ struct MinimalistView: View {
             
             Spacer()
             
-            // MARK: - Waypoint Dock
-            MinimalistWaypointDock(namespace: namespace)
-                .padding(.bottom, 30)
+            // Large Waypoint Dock
+            if !spotifyController.waypoints.isEmpty {
+                MinimalistWaypointDock(namespace: namespace)
+                    .padding(.bottom, 50)
+                    .transition(.asymmetric(insertion: .opacity, removal: .opacity))
+            }
         }
         .padding()
         .environment(\.colorScheme, .dark)

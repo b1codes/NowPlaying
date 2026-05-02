@@ -13,6 +13,8 @@
 		71159F4C2E638E23006D75D3 /* watchOS Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 71159F2C2E638E22006D75D3 /* watchOS Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		715565F02FA671E80068F8FC /* DJControlsGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715565EF2FA671E80068F8FC /* DJControlsGrid.swift */; };
 		715565F22FA671EF0068F8FC /* TurntableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715565F12FA671EF0068F8FC /* TurntableView.swift */; };
+		715565F42FA6775F0068F8FC /* MinimalistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715565F32FA6775F0068F8FC /* MinimalistView.swift */; };
+		715565F62FA67AE30068F8FC /* MinimalistIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715565F52FA67AE30068F8FC /* MinimalistIntent.swift */; };
 		71A64A032F09AE91000C384A /* GlassIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 71A64A022F09AE91000C384A /* GlassIcon.icon */; };
 		71A64A042F09AE91000C384A /* GlassIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 71A64A022F09AE91000C384A /* GlassIcon.icon */; };
 		71A64A052F09AE91000C384A /* GlassIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 71A64A022F09AE91000C384A /* GlassIcon.icon */; };
@@ -113,6 +115,8 @@
 		71159F422E638E23006D75D3 /* watchOS Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "watchOS Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		715565EF2FA671E80068F8FC /* DJControlsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DJControlsGrid.swift; sourceTree = "<group>"; };
 		715565F12FA671EF0068F8FC /* TurntableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurntableView.swift; sourceTree = "<group>"; };
+		715565F32FA6775F0068F8FC /* MinimalistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalistView.swift; sourceTree = "<group>"; };
+		715565F52FA67AE30068F8FC /* MinimalistIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalistIntent.swift; sourceTree = "<group>"; };
 		71A64A022F09AE91000C384A /* GlassIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = GlassIcon.icon; sourceTree = "<group>"; };
 		71A64ADC2F09FE37000C384A /* AuthorizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationView.swift; sourceTree = "<group>"; };
 		71D4C63D2F5465A7008D372F /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackState.swift; sourceTree = "<group>"; };
@@ -266,6 +270,8 @@
 				71D4C6532F54C171008D372F /* Waypoint.swift */,
 				715565EF2FA671E80068F8FC /* DJControlsGrid.swift */,
 				715565F12FA671EF0068F8FC /* TurntableView.swift */,
+				715565F32FA6775F0068F8FC /* MinimalistView.swift */,
+				715565F52FA67AE30068F8FC /* MinimalistIntent.swift */,
 			);
 			path = "Now Playing";
 			sourceTree = "<group>";
@@ -607,12 +613,14 @@
 				CAA270E72AE99C3B007D9E3E /* ContentView.swift in Sources */,
 				CA265FFF2C4AD73500C1B3DB /* SpotifyController.swift in Sources */,
 				715565F22FA671EF0068F8FC /* TurntableView.swift in Sources */,
+				715565F62FA67AE30068F8FC /* MinimalistIntent.swift in Sources */,
 				71A64ADD2F09FE37000C384A /* AuthorizationView.swift in Sources */,
 				71D4C6542F54C171008D372F /* Waypoint.swift in Sources */,
 				71D4C63E2F5465A7008D372F /* PlaybackState.swift in Sources */,
 				71D4C6402F5465AD008D372F /* PlaybackControlIntents.swift in Sources */,
 				CAA270E52AE99C3B007D9E3E /* Now_PlayingApp.swift in Sources */,
 				715565F02FA671E80068F8FC /* DJControlsGrid.swift in Sources */,
+				715565F42FA6775F0068F8FC /* MinimalistView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

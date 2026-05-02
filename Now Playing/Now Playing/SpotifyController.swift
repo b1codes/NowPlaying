@@ -51,6 +51,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
 
     /// Whether the minimalist UI mode is active.
     @AppStorage("isMinimalistMode") var isMinimalistMode: Bool = false {
+        willSet { objectWillChange.send() }
         didSet { saveState() }
     }
 
