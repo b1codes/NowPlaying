@@ -20,6 +20,7 @@ struct ContentView: View {
     @AppStorage("appTheme") private var appTheme: AppTheme = .album
     @AppStorage("blurRadius") private var blurRadius: Double = 40.0
     @AppStorage("skipInterval") private var skipInterval: Int = 15
+    @AppStorage("isAdvancedMode") private var isAdvancedMode: Bool = false
 
     @State private var showingThemeSettings = false
     @State private var scrubbingPosition: Double?
@@ -41,14 +42,19 @@ struct ContentView: View {
                                let trackArtist = spotifyController.currentTrackArtist,
                                let trackImageData = spotifyController.currentTrackImage,
                                let trackImage = UIImage(data: trackImageData) {
-                                // Album Art - Slightly smaller to fit everything
-                                Image(uiImage: trackImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 200, height: 200)
-                                    .cornerRadius(20)
-                                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-                                    .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
+                                
+                                if isAdvancedMode {
+                                    TurntableView(trackImage: trackImage)
+                                } else {
+                                    // Album Art - Slightly smaller to fit everything
+                                    Image(uiImage: trackImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 200, height: 200)
+                                        .cornerRadius(20)
+                                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                        .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
+                                }
 
                                 // Track Name
                                 Text(trackName)
@@ -74,6 +80,11 @@ struct ContentView: View {
                                 // Main Controls
                                 MainControls()
                                     .padding(.top, 5)
+                                
+                                if isAdvancedMode {
+                                    DJControlsGrid()
+                                        .padding(.top, 15)
+                                }
 
                                 // Progress Bar Layer
                                 ProgressBarLayer(scrubbingPosition: $scrubbingPosition)
@@ -146,7 +157,8 @@ struct ContentView: View {
                         showingThemeSettings: $showingThemeSettings,
                         appTheme: $appTheme,
                         skipInterval: $skipInterval,
-                        blurRadius: $blurRadius
+                        blurRadius: $blurRadius,
+                        isAdvancedMode: $isAdvancedMode
                     )
                 }
             }
@@ -223,6 +235,7 @@ struct SettingsButton: View {
     @Binding var appTheme: AppTheme
     @Binding var skipInterval: Int
     @Binding var blurRadius: Double
+    @Binding var isAdvancedMode: Bool
 
     var body: some View {
         Button {
@@ -232,54 +245,64 @@ struct SettingsButton: View {
                 .foregroundColor(.primary)
         }
         .popover(isPresented: $showingThemeSettings) {
-            VStack(spacing: 20) {
-                Text("Settings")
-                    .font(.headline)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Settings")
+                        .font(.headline)
+                        .padding(.top)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Theme")
-                        .font(.subheadline)
-                    Picker("Theme", selection: $appTheme) {
-                        ForEach(AppTheme.allCases) { theme in
-                            Text(theme.rawValue).tag(theme)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Mode")
+                            .font(.subheadline)
+                        Toggle("Turntable (DJ) Mode", isOn: $isAdvancedMode)
+                    }
+                    .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Theme")
+                            .font(.subheadline)
+                        Picker("Theme", selection: $appTheme) {
+                            ForEach(AppTheme.allCases) { theme in
+                                Text(theme.rawValue).tag(theme)
+                            }
                         }
+                        .pickerStyle(.segmented)
                     }
-                    .pickerStyle(.segmented)
-                }
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Skip Interval")
-                        .font(.subheadline)
-                    Picker("Skip Interval", selection: $skipInterval) {
-                        Text("None").tag(0)
-                        Text("5s").tag(5)
-                        Text("10s").tag(10)
-                        Text("15s").tag(15)
-                        Text("30s").tag(30)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                if appTheme == .album {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Blur Control")
-                                .font(.subheadline)
-                            Spacer()
-                            Text("\(Int(blurRadius))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        Text("Skip Interval")
+                            .font(.subheadline)
+                        Picker("Skip Interval", selection: $skipInterval) {
+                            Text("None").tag(0)
+                            Text("5s").tag(5)
+                            Text("10s").tag(10)
+                            Text("15s").tag(15)
+                            Text("30s").tag(30)
                         }
+                        .pickerStyle(.segmented)
+                    }
 
-                        Slider(value: $blurRadius, in: 0...100)
+                    if appTheme == .album {
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Blur Control")
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("\(Int(blurRadius))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Slider(value: $blurRadius, in: 0...100)
+                        }
                     }
                 }
+                .padding()
             }
-            .padding()
             .frame(width: 300)
             .presentationCompactAdaptation(.popover)
         }

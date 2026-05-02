@@ -69,6 +69,8 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     @Published var showDisconnectBanner: Bool = false
     /// Countdown in seconds until the next automatic reconnect attempt.
     @Published var retryCountdown: Int = 0
+    @Published var loopStart: Int?
+    @Published var loopEnd: Int?
     private var timer: Timer?
     private var bannerTask: Task<Void, Never>?
 
@@ -166,6 +168,29 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         guard let index = waypoints.firstIndex(where: { $0.id == waypoint.id }) else { return }
         waypoints[index] = Waypoint(id: waypoint.id, position: waypoint.position, colorHex: colorHex, label: label)
         saveWaypoints()
+    }
+
+    func setLoopIn() {
+        haptic(.medium)
+        loopStart = currentTrackPosition
+    }
+
+    func setLoopOut() {
+        haptic(.medium)
+        // Ensure out is after in
+        if let start = loopStart, currentTrackPosition > start {
+            loopEnd = currentTrackPosition
+        } else {
+            // If they try to set Out before In, just set In instead.
+            loopStart = currentTrackPosition
+            loopEnd = nil
+        }
+    }
+
+    func clearLoop() {
+        haptic(.light)
+        loopStart = nil
+        loopEnd = nil
     }
 
     private func saveWaypoints() {
@@ -515,6 +540,13 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
             _ in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
+                
+                // Fuzzy A-B Looping Check
+                if let end = self.loopEnd, let start = self.loopStart, self.currentTrackPosition >= end {
+                    self.seek(to: start)
+                    return // skip incrementing since we just seeked
+                }
+                
                 if self.currentTrackPosition
                     < (self.currentTrackDuration ?? Int.max) {
                     self.currentTrackPosition += 1
