@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MinimalistView: View {
     @EnvironmentObject var spotifyController: SpotifyController
-    let animationNamespace: Namespace.ID
+    let namespace: Namespace.ID
     
     var body: some View {
         VStack {
@@ -22,7 +22,7 @@ struct MinimalistView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.white)
                 }
-                .matchedGeometryEffect(id: "skipBack", in: animationNamespace)
+                .matchedGeometryEffect(id: "skipBack", in: namespace)
                 
                 Button(action: {
                     spotifyController.isPaused ? spotifyController.play() : spotifyController.pause()
@@ -32,14 +32,14 @@ struct MinimalistView: View {
                         .foregroundColor(.white)
                         .contentTransition(.symbolEffect(.replace))
                 }
-                .matchedGeometryEffect(id: "playPause", in: animationNamespace)
+                .matchedGeometryEffect(id: "playPause", in: namespace)
                 
                 Button(action: { spotifyController.skipToNext() }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.white)
                 }
-                .matchedGeometryEffect(id: "skipForward", in: animationNamespace)
+                .matchedGeometryEffect(id: "skipForward", in: namespace)
             }
             .padding(.vertical, 40)
             .padding(.horizontal, 20)
@@ -48,7 +48,7 @@ struct MinimalistView: View {
             Spacer()
             
             // MARK: - Waypoint Dock
-            MinimalistWaypointDock(animationNamespace: animationNamespace)
+            MinimalistWaypointDock(namespace: namespace)
                 .padding(.bottom, 30)
         }
         .padding()
@@ -58,7 +58,7 @@ struct MinimalistView: View {
 
 struct MinimalistWaypointDock: View {
     @EnvironmentObject var spotifyController: SpotifyController
-    let animationNamespace: Namespace.ID
+    let namespace: Namespace.ID
     
     var body: some View {
         VStack(spacing: 12) {
@@ -79,13 +79,13 @@ struct MinimalistWaypointDock: View {
         }
         .padding(.vertical, 15)
         .glassBackground()
-        .matchedGeometryEffect(id: "waypointDock", in: animationNamespace)
+        .matchedGeometryEffect(id: "waypointDock", in: namespace)
     }
 }
 
 #Preview {
     @Namespace var ns
-    return MinimalistView(animationNamespace: ns)
+    MinimalistView(namespace: ns)
         .environmentObject(SpotifyController.shared)
         .background(Color.black)
 }

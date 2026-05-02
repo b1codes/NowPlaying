@@ -16,6 +16,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @EnvironmentObject var spotifyController: SpotifyController
+    @Namespace private var minimalistNamespace
 
     @AppStorage("appTheme") private var appTheme: AppTheme = .album
     @AppStorage("blurRadius") private var blurRadius: Double = 40.0
@@ -32,112 +33,117 @@ struct ContentView: View {
                 BackgroundLayer(appTheme: appTheme, blurRadius: blurRadius)
 
                 // MARK: - Foreground Layer
-                VStack(spacing: 0) {
-                    Spacer()
+                if spotifyController.isMinimalistMode {
+                    MinimalistView(namespace: minimalistNamespace)
+                        .transition(.asymmetric(insertion: .opacity, removal: .opacity))
+                } else {
+                    VStack(spacing: 0) {
+                        Spacer()
 
-                    VStack(spacing: 20) {
-                        // Main Content
-                        VStack {
-                            if let trackName = spotifyController.currentTrackName,
-                               let trackArtist = spotifyController.currentTrackArtist,
-                               let trackImageData = spotifyController.currentTrackImage,
-                               let trackImage = UIImage(data: trackImageData) {
-                                
-                                if isAdvancedMode {
-                                    TurntableView(trackImage: trackImage)
-                                } else {
-                                    // Album Art - Slightly smaller to fit everything
-                                    Image(uiImage: trackImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 200, height: 200)
-                                        .cornerRadius(20)
-                                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-                                        .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
-                                }
-
-                                // Track Name
-                                Text(trackName)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .lineLimit(1)
-                                    .multilineTextAlignment(.center)
-                                    .foregroundColor(.white)
-                                    .frame(width: 250)
-                                    .shadow(radius: 2)
-                                    .trackTransition(id: spotifyController.currentTrackURI)
-
-                                // Artist Name
-                                Text(trackArtist)
-                                    .font(.headline)
-                                    .lineLimit(1)
-                                    .multilineTextAlignment(.center)
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .frame(width: 250)
-                                    .shadow(radius: 2)
-                                    .trackTransition(id: spotifyController.currentTrackURI)
-
-                                // Main Controls
-                                MainControls()
-                                    .padding(.top, 5)
-                                
-                                if isAdvancedMode {
-                                    DJControlsGrid()
-                                        .padding(.top, 15)
-                                }
-
-                                // Progress Bar Layer
-                                ProgressBarLayer(scrubbingPosition: $scrubbingPosition)
-                                    .padding(.horizontal, 15)
-                                    .padding(.top, 10)
-                                    .frame(width: 250)
-
-                                // Secondary Controls
-                                if skipInterval > 0 {
-                                    HStack(spacing: 50) {
-                                        Button(action: { spotifyController.skipBackward() }) {
-                                            Image(systemName: "gobackward.\(skipInterval)")
-                                                .font(.title)
-                                                .foregroundColor(.white)
-                                        }
-
-                                        Button(action: { spotifyController.skipForward() }) {
-                                            Image(systemName: "goforward.\(skipInterval)")
-                                                .font(.title)
-                                                .foregroundColor(.white)
-                                        }
+                        VStack(spacing: 20) {
+                            // Main Content
+                            VStack {
+                                if let trackName = spotifyController.currentTrackName,
+                                   let trackArtist = spotifyController.currentTrackArtist,
+                                   let trackImageData = spotifyController.currentTrackImage,
+                                   let trackImage = UIImage(data: trackImageData) {
+                                    
+                                    if isAdvancedMode {
+                                        TurntableView(trackImage: trackImage)
+                                    } else {
+                                        // Album Art - Slightly smaller to fit everything
+                                        Image(uiImage: trackImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 200, height: 200)
+                                            .cornerRadius(20)
+                                            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                            .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
                                     }
-                                    .padding(.top, 5)
-                                }
 
-                            } else {
-                                ProgressView()
-                                    .tint(.white)
-                                    .frame(width: 250, height: 400)
+                                    // Track Name
+                                    Text(trackName)
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .lineLimit(1)
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.white)
+                                        .frame(width: 250)
+                                        .shadow(radius: 2)
+                                        .trackTransition(id: spotifyController.currentTrackURI)
+
+                                    // Artist Name
+                                    Text(trackArtist)
+                                        .font(.headline)
+                                        .lineLimit(1)
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .frame(width: 250)
+                                        .shadow(radius: 2)
+                                        .trackTransition(id: spotifyController.currentTrackURI)
+
+                                    // Main Controls
+                                    MainControls(namespace: minimalistNamespace)
+                                        .padding(.top, 5)
+                                    
+                                    if isAdvancedMode {
+                                        DJControlsGrid()
+                                            .padding(.top, 15)
+                                    }
+
+                                    // Progress Bar Layer
+                                    ProgressBarLayer(scrubbingPosition: $scrubbingPosition)
+                                        .padding(.horizontal, 15)
+                                        .padding(.top, 10)
+                                        .frame(width: 250)
+
+                                    // Secondary Controls
+                                    if skipInterval > 0 {
+                                        HStack(spacing: 50) {
+                                            Button(action: { spotifyController.skipBackward() }) {
+                                                Image(systemName: "gobackward.\(skipInterval)")
+                                                    .font(.title)
+                                                    .foregroundColor(.white)
+                                            }
+
+                                            Button(action: { spotifyController.skipForward() }) {
+                                                Image(systemName: "goforward.\(skipInterval)")
+                                                    .font(.title)
+                                                    .foregroundColor(.white)
+                                            }
+                                        }
+                                        .padding(.top, 5)
+                                    }
+
+                                } else {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .frame(width: 250, height: 400)
+                                }
+                            }
+                            .padding(.vertical, 25)
+                            .padding(.horizontal, 20)
+                            .glassBackground()
+                            .environment(\.colorScheme, .dark)
+
+                            // Disconnected banner
+                            if spotifyController.showDisconnectBanner {
+                                DisconnectedBanner()
+                                    .transition(.slideUpFade)
+                            }
+
+                            // Waypoint Dock
+                            if !spotifyController.waypoints.isEmpty {
+                                WaypointDock(namespace: minimalistNamespace)
+                                    .transition(.slideUpFade)
                             }
                         }
-                        .padding(.vertical, 25)
-                        .padding(.horizontal, 20)
-                        .glassBackground()
-                        .environment(\.colorScheme, .dark)
+                        .padding(20)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.78), value: spotifyController.waypoints.isEmpty)
+                        .animation(.easeInOut(duration: 0.3), value: !spotifyController.showDisconnectBanner)
 
-                        // Disconnected banner
-                        if spotifyController.showDisconnectBanner {
-                            DisconnectedBanner()
-                                .transition(.slideUpFade)
-                        }
-
-                        // Waypoint Dock
-                        if !spotifyController.waypoints.isEmpty {
-                            WaypointDock()
-                                .transition(.slideUpFade)
-                        }
+                        Spacer()
                     }
-                    .padding(20)
-                    .animation(.spring(response: 0.45, dampingFraction: 0.78), value: spotifyController.waypoints.isEmpty)
-                    .animation(.easeInOut(duration: 0.3), value: !spotifyController.showDisconnectBanner)
-
-                    Spacer()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -231,6 +237,7 @@ struct AccountMenu: View {
 }
 
 struct SettingsButton: View {
+    @EnvironmentObject var spotifyController: SpotifyController
     @Binding var showingThemeSettings: Bool
     @Binding var appTheme: AppTheme
     @Binding var skipInterval: Int
@@ -255,6 +262,14 @@ struct SettingsButton: View {
                         Text("Mode")
                             .font(.subheadline)
                         Toggle("Turntable (DJ) Mode", isOn: $isAdvancedMode)
+                        Toggle("Minimalist (Driving) Mode", isOn: Binding(
+                            get: { spotifyController.isMinimalistMode },
+                            set: { newValue in
+                                withAnimation(.spring()) {
+                                    spotifyController.isMinimalistMode = newValue
+                                }
+                            }
+                        ))
                     }
                     .padding(.horizontal)
 
@@ -342,6 +357,7 @@ struct BackgroundLayer: View {
 
 struct MainControls: View {
     @EnvironmentObject var spotifyController: SpotifyController
+    let namespace: Namespace.ID
 
     var body: some View {
         HStack(spacing: 25) {
@@ -356,6 +372,7 @@ struct MainControls: View {
                     .font(.title)
                     .foregroundColor(.white)
             }
+            .matchedGeometryEffect(id: "skipBack", in: namespace)
 
             Button(action: {
                 spotifyController.isPaused ? spotifyController.play() : spotifyController.pause()
@@ -366,12 +383,14 @@ struct MainControls: View {
                     .contentTransition(.symbolEffect(.replace))
                     .animation(.easeInOut(duration: 0.2), value: spotifyController.isPaused)
             }
+            .matchedGeometryEffect(id: "playPause", in: namespace)
 
             Button(action: { spotifyController.skipToNext() }) {
                 Image(systemName: "forward.fill")
                     .font(.title)
                     .foregroundColor(.white)
             }
+            .matchedGeometryEffect(id: "skipForward", in: namespace)
 
             Button(action: { spotifyController.toggleRepeat() }) {
                 Image(systemName: spotifyController.repeatMode == 1 ? "repeat.1" : "repeat")
@@ -537,6 +556,7 @@ struct ProgressBarLayer: View {
 
 struct WaypointDock: View {
     @EnvironmentObject var spotifyController: SpotifyController
+    let namespace: Namespace.ID
     @State private var editingWaypoint: Waypoint?
 
     var body: some View {
@@ -595,6 +615,7 @@ struct WaypointDock: View {
         .frame(width: 250)
         .padding(.vertical, 12)
         .glassBackground()
+        .matchedGeometryEffect(id: "waypointDock", in: namespace)
         .environment(\.colorScheme, .dark)
         .sheet(item: $editingWaypoint) { waypoint in
             WaypointEditSheet(waypoint: waypoint)
