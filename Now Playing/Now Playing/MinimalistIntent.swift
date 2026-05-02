@@ -29,3 +29,24 @@ struct ToggleMinimalistMode: AppIntent {
         return .result()
     }
 }
+
+struct MinimalistFocusFilter: SetFocusFilterIntent {
+    static var title: LocalizedStringResource = "Minimalist Mode"
+    static var description = IntentDescription("Automatically turn on Minimalist Mode during this Focus.")
+
+    @Parameter(title: "Enabled", default: true)
+    var enabled: Bool
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(
+            title: "Minimalist Mode",
+            subtitle: enabled ? "On" : "Off"
+        )
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        SpotifyController.shared.isMinimalistMode = enabled
+        return .result()
+    }
+}
