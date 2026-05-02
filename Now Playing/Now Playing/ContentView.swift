@@ -158,6 +158,10 @@ struct ContentView: View {
                     AccountMenu()
                 }
 
+                ToolbarItem(placement: .principal) {
+                    VolumeIndicator()
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     SettingsButton(
                         showingThemeSettings: $showingThemeSettings,
@@ -733,6 +737,27 @@ struct DisconnectedBanner: View {
                 .environment(\.colorScheme, .dark)
             }
         }
+    }
+}
+
+// MARK: - Volume Indicator
+
+struct VolumeIndicator: View {
+    @EnvironmentObject var spotifyController: SpotifyController
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "speaker.wave.2.fill")
+                .font(.caption)
+            Text("\(Int(spotifyController.currentVolume * 100))%")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .monospacedDigit()
+        }
+        .foregroundColor(.primary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.ultraThinMaterial, in: Capsule())
     }
 }
 

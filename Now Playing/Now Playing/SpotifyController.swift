@@ -5,6 +5,7 @@
 //  Created by Brandon Lamer-Connolly on 7/19/24.
 //
 
+import AVFoundation
 import Combine
 import os
 import SpotifyiOS
@@ -77,6 +78,9 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     @Published var retryCountdown: Int = 0
     @Published var loopStart: Int?
     @Published var loopEnd: Int?
+    @Published var currentVolume: Float = AVAudioSession.sharedInstance().outputVolume
+    
+    private var volumeObservation: NSKeyValueObservation?
     private var timer: Timer?
     private var bannerTask: Task<Void, Never>?
 
@@ -354,6 +358,20 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
 
     override init() {
         super.init()
+        
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to activate audio session: \(error)")
+        }
+        
+        volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.initial, .new]) { [weak self] session, change in
+            guard let newVolume = change.newValue else { return }
+            Task { @MainActor in
+                self?.currentVolume = newVolume
+            }
+        }
+        
         connectCancellable = NotificationCenter.default.publisher(
             for: UIApplication.didBecomeActiveNotification
         )
