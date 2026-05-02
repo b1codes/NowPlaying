@@ -150,8 +150,8 @@ struct ContentView: View {
             .onAppear {
                 spotifyController.skipInterval = skipInterval
             }
-            .onChange(of: skipInterval) { newValue in
-                spotifyController.skipInterval = newValue
+            .onChange(of: skipInterval) {
+                spotifyController.skipInterval = skipInterval
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

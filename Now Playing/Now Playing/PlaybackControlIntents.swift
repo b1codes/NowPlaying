@@ -13,7 +13,7 @@ struct PlayPauseIntent: AudioPlaybackIntent {
     static var description = IntentDescription("Toggles playback.")
 
     func perform() async throws -> some IntentResult {
-        if let controller = await PlaybackControlProvider.shared {
+        if let controller = PlaybackControlProvider.shared {
             let connected = await controller.connectIfNeeded()
             if connected {
                 await MainActor.run {
@@ -43,7 +43,7 @@ struct SkipNextIntent: AudioPlaybackIntent {
     static var description = IntentDescription("Skips to the next track.")
 
     func perform() async throws -> some IntentResult {
-        if let controller = await PlaybackControlProvider.shared {
+        if let controller = PlaybackControlProvider.shared {
             let connected = await controller.connectIfNeeded()
             if connected {
                 await MainActor.run {
@@ -66,10 +66,12 @@ struct SkipPreviousIntent: AudioPlaybackIntent {
     static var description = IntentDescription("Skips to the previous track.")
 
     func perform() async throws -> some IntentResult {
-        if let controller = await PlaybackControlProvider.shared {
+        if let controller = PlaybackControlProvider.shared {
             let connected = await controller.connectIfNeeded()
             if connected {
-                controller.skipToPrevious()
+                await MainActor.run {
+                    controller.skipToPrevious()
+                }
             }
         }
 

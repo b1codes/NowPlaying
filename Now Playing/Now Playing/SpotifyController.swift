@@ -417,7 +417,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     /// Skips to the previous track.
     func skipToPrevious() {
         haptic(.medium)
-        appRemote.playerAPI?.skip(toPrevious: { [weak self] _, error in
+        appRemote.playerAPI?.skip(toPrevious: { _, error in
             if let error = error {
                 print(
                     "Error skipping to previous: \(error.localizedDescription)"
@@ -443,7 +443,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         haptic(.heavy)
         isPaused = true
         stopTimer()
-        appRemote.playerAPI?.pause({ [weak self] _, error in
+        appRemote.playerAPI?.pause({ _, error in
             if let error = error {
                 print("Error pausing: \(error.localizedDescription)")
             }
@@ -453,7 +453,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     /// Skips to the next track.
     func skipToNext() {
         haptic(.medium)
-        appRemote.playerAPI?.skip(toNext: { [weak self] _, error in
+        appRemote.playerAPI?.skip(toNext: { _, error in
             if let error = error {
                 print("Error skipping to next: \(error.localizedDescription)")
             }
