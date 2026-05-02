@@ -29,6 +29,7 @@ struct PlaybackState: Codable {
     var trackURI: String
     var duration: Int
     var position: Int
+    var isMinimalistMode: Bool
     var lastUpdated: Date
 
     /// Canonical "not connected" sentinel used throughout the app and widget as a safe fallback.
@@ -39,6 +40,7 @@ struct PlaybackState: Codable {
         trackURI: "",
         duration: 0,
         position: 0,
+        isMinimalistMode: false,
         lastUpdated: Date()
     )
 }

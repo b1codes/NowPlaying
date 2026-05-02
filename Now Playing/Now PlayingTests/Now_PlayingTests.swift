@@ -126,6 +126,7 @@ struct PlaybackStateTests {
         #expect(empty.trackURI == "")
         #expect(empty.duration == 0)
         #expect(empty.position == 0)
+        #expect(empty.isMinimalistMode == false)
     }
 
     @Test("Encodes and decodes correctly (Codable roundtrip)")
@@ -137,6 +138,7 @@ struct PlaybackStateTests {
             trackURI: "spotify:track:abc123",
             duration: 210,
             position: 60,
+            isMinimalistMode: true,
             lastUpdated: Date(timeIntervalSince1970: 1_000_000)
         )
         let data = try JSONEncoder().encode(state)
@@ -148,6 +150,7 @@ struct PlaybackStateTests {
         #expect(decoded.trackURI == state.trackURI)
         #expect(decoded.duration == state.duration)
         #expect(decoded.position == state.position)
+        #expect(decoded.isMinimalistMode == state.isMinimalistMode)
     }
 }
 
@@ -170,6 +173,7 @@ struct PlaybackStateManagerTests {
             trackURI: "spotify:track:xyz",
             duration: 180,
             position: 30,
+            isMinimalistMode: false,
             lastUpdated: Date(timeIntervalSince1970: 500)
         )
         PlaybackStateManager.shared.save(state)
@@ -181,6 +185,7 @@ struct PlaybackStateManagerTests {
         #expect(loaded.trackURI == state.trackURI)
         #expect(loaded.duration == state.duration)
         #expect(loaded.position == state.position)
+        #expect(loaded.isMinimalistMode == state.isMinimalistMode)
         cleanup()
     }
 
@@ -191,6 +196,7 @@ struct PlaybackStateManagerTests {
         #expect(loaded.trackName == PlaybackState.empty.trackName)
         #expect(loaded.artistName == PlaybackState.empty.artistName)
         #expect(loaded.trackURI == PlaybackState.empty.trackURI)
+        #expect(loaded.isMinimalistMode == PlaybackState.empty.isMinimalistMode)
     }
 
     @Test("Clear removes persisted state")
@@ -202,6 +208,7 @@ struct PlaybackStateManagerTests {
             trackURI: "spotify:track:clear",
             duration: 100,
             position: 0,
+            isMinimalistMode: false,
             lastUpdated: Date()
         )
         PlaybackStateManager.shared.save(state)
@@ -220,6 +227,7 @@ struct PlaybackStateManagerTests {
             trackURI: "spotify:track:first",
             duration: 100,
             position: 0,
+            isMinimalistMode: false,
             lastUpdated: Date()
         )
         let second = PlaybackState(
@@ -229,6 +237,7 @@ struct PlaybackStateManagerTests {
             trackURI: "spotify:track:second",
             duration: 200,
             position: 50,
+            isMinimalistMode: true,
             lastUpdated: Date()
         )
         PlaybackStateManager.shared.save(first)

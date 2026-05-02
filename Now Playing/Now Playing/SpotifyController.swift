@@ -49,6 +49,11 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         didSet { saveState() }
     }
 
+    /// Whether the minimalist UI mode is active.
+    @AppStorage("isMinimalistMode") var isMinimalistMode: Bool = false {
+        didSet { saveState() }
+    }
+
     /// Current playback position in seconds, updated by a 1-second timer while playing.
     @Published var currentTrackPosition: Int = 0
     /// Number of seconds to skip forward or backward via `skipForward()` / `skipBackward()`.
@@ -220,6 +225,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
             trackURI: currentTrackURI ?? "",
             duration: currentTrackDuration ?? 0,
             position: currentTrackPosition,
+            isMinimalistMode: isMinimalistMode,
             lastUpdated: Date()
         )
         PlaybackStateManager.shared.save(state)
