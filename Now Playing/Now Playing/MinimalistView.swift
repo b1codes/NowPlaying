@@ -87,7 +87,7 @@ struct MinimalistWaypointDock: View {
 }
 
 #Preview {
-    @Namespace var ns
+    @Previewable @Namespace var ns
     MinimalistView(namespace: ns)
         .environmentObject(SpotifyController.shared)
         .background(Color.black)

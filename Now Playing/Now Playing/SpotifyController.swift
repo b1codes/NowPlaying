@@ -431,7 +431,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         haptic(.heavy)
         isPaused = false
         startTimer()
-        appRemote.playerAPI?.resume({ [weak self] _, error in
+        appRemote.playerAPI?.resume({ _, error in
             if let error = error {
                 print("Error playing: \(error.localizedDescription)")
             }

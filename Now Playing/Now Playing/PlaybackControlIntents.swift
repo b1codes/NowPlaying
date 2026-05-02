@@ -69,9 +69,7 @@ struct SkipPreviousIntent: AudioPlaybackIntent {
         if let controller = await PlaybackControlProvider.shared {
             let connected = await controller.connectIfNeeded()
             if connected {
-                await MainActor.run {
-                    controller.skipToPrevious()
-                }
+                controller.skipToPrevious()
             }
         }
 

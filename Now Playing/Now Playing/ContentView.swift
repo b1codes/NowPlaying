@@ -519,15 +519,15 @@ struct ProgressBarLayer: View {
                         }
                     }
                 )
-                .onChange(of: localSliderValue) { newValue in
+                .onChange(of: localSliderValue) {
                     if scrubbingPosition != nil {
-                        scrubbingPosition = newValue
+                        scrubbingPosition = localSliderValue
                     }
                 }
-                .onChange(of: spotifyController.currentTrackPosition) { newValue in
+                .onChange(of: spotifyController.currentTrackPosition) {
                     if scrubbingPosition == nil {
                         withAnimation(.linear(duration: 1)) {
-                            localSliderValue = Double(newValue)
+                            localSliderValue = Double(spotifyController.currentTrackPosition)
                         }
                     }
                 }
