@@ -49,7 +49,7 @@ graph TD
 
 ```
 NowPlaying/
-└── Now Playing/          # Project Root Folder
+└── frontend/             # iOS/watchOS app sources (Xcode project root)
     ├── Now Playing/      # Main iOS Application Target
     │   ├── ContentView.swift # Main Glassmorphism UI
     │   ├── SpotifyController.swift # Core Spotify logic
@@ -82,7 +82,7 @@ NowPlaying/
     *   Copy your `Client ID`.
     *   In "Edit Settings", add `spotify-ios-quick-start://spotify-login-callback` to the **Redirect URIs**.
 3.  **Configuration:**
-    *   Create a file named `Sample.xcconfig` in `Now Playing/Now Playing/`.
+    *   Create a file named `Sample.xcconfig` in `frontend/Now Playing/`.
     *   Add your client ID:
         ```
         SPOTIFY_API_CLIENT_ID = YOUR_CLIENT_ID
@@ -90,7 +90,7 @@ NowPlaying/
     *   In Xcode, ensure the "URL Types" in the "Now Playing" target's Info tab matches your redirect URI scheme (e.g., `spotify-ios-quick-start`).
 
 ### Running the App
-1.  Open `Now Playing.xcodeproj` in Xcode.
+1.  Open `frontend/Now Playing.xcodeproj` in Xcode.
 2.  Select the **Now Playing** scheme.
 3.  Run on a physical iOS device or a simulator with Spotify installed.
 4.  Tap "Connect to Spotify" and authorize the application.
