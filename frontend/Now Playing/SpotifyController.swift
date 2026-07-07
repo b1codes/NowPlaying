@@ -367,14 +367,20 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         }.resume()
     }
 
+    private func setupAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.ambient, options: .mixWithOthers)
+            try AVAudioSession.sharedInstance().setActive(true)
+            self.currentVolume = AVAudioSession.sharedInstance().outputVolume
+        } catch {
+            print("Failed to setup audio session: \(error)")
+        }
+    }
+
     override init() {
         super.init()
         
-        do {
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print("Failed to activate audio session: \(error)")
-        }
+        setupAudioSession()
         
         volumeObservation = AVAudioSession.sharedInstance().observe(\.outputVolume, options: [.initial, .new]) { [weak self] session, change in
             guard let newVolume = change.newValue else { return }
@@ -387,8 +393,9 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
             for: UIApplication.didBecomeActiveNotification
         )
         .receive(on: DispatchQueue.main)
-        .sink { _ in
-            self.connect()
+        .sink { [weak self] _ in
+            self?.setupAudioSession()
+            self?.connect()
         }
 
         disconnectCancellable = NotificationCenter.default.publisher(
