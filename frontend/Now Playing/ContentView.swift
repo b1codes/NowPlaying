@@ -49,7 +49,7 @@ struct ContentView: View {
                                    let trackImage = UIImage(data: trackImageData) {
                                     
                                     if isAdvancedMode {
-                                        TurntableView(trackImage: trackImage)
+                                        TurntableView(trackImage: trackImage, namespace: minimalistNamespace)
                                     } else {
                                         // Album Art - Slightly smaller to fit everything
                                         Image(uiImage: trackImage)
@@ -58,6 +58,7 @@ struct ContentView: View {
                                             .frame(width: 200, height: 200)
                                             .cornerRadius(20)
                                             .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                            .matchedGeometryEffect(id: "albumArt", in: minimalistNamespace)
                                             .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
                                     }
 
@@ -146,6 +147,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: spotifyController.isMinimalistMode)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 spotifyController.skipInterval = skipInterval
@@ -265,7 +267,14 @@ struct SettingsButton: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Mode")
                             .font(.subheadline)
-                        Toggle("Turntable (DJ) Mode", isOn: $isAdvancedMode)
+                        Toggle("Turntable (DJ) Mode", isOn: Binding(
+                            get: { isAdvancedMode },
+                            set: { newValue in
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                    isAdvancedMode = newValue
+                                }
+                            }
+                        ))
                         Toggle("Minimalist (Driving) Mode", isOn: Binding(
                             get: { spotifyController.isMinimalistMode },
                             set: { newValue in
@@ -578,6 +587,7 @@ struct WaypointDock: View {
                                 Circle()
                                     .fill(waypoint.color)
                                     .frame(width: 10, height: 10)
+                                    .matchedGeometryEffect(id: "waypointCircle-\(waypoint.id.uuidString)", in: namespace)
                                 Text(waypoint.position.formatAsTime())
                                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                                     .foregroundColor(.white)

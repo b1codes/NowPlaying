@@ -251,7 +251,7 @@ struct PlaybackStateManagerTests {
 
 // MARK: - SpotifyController Session & State Tests
 
-@Suite("SpotifyController Session & State")
+@Suite("SpotifyController Session & State", .serialized)
 @MainActor
 struct SpotifyControllerSessionTests {
 
@@ -267,6 +267,27 @@ struct SpotifyControllerSessionTests {
         controller.currentUserImage = Data([0x89, 0x50])
         controller.isPaused = false
         return controller
+    }
+
+    @Test("App Group shared defaults synchronizes isMinimalistMode")
+    func minimalistModeSync() {
+        let controller = SpotifyController()
+        let sharedDefaults = UserDefaults(suiteName: "group.com.brandonlamer-connolly.nowplaying") ?? .standard
+        
+        // Initial state should be false
+        controller.isMinimalistMode = false
+        
+        // Simulating external update via shared suite
+        sharedDefaults.set(true, forKey: "isMinimalistMode")
+        
+        // Post manual notification synchronously to trigger observer
+        NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: sharedDefaults)
+        
+        // It should synchronize automatically
+        #expect(controller.isMinimalistMode == true)
+        
+        // Clean up
+        sharedDefaults.removeObject(forKey: "isMinimalistMode")
     }
 
     @Test("logout() clears all track and user state")
@@ -337,6 +358,47 @@ struct SpotifyControllerSessionTests {
         #expect(controller.waypoints[0].label == nil)
         UserDefaults.standard.removeObject(forKey: "waypoints_spotify:track:sessionTest")
     }
+
+    @Test("setLoopIn() and setLoopOut() establish loop points correctly")
+    func loopPointsSetting() {
+        let controller = makeController()
+        
+        // Initially nil
+        #expect(controller.loopStart == nil)
+        #expect(controller.loopEnd == nil)
+        
+        // Setting loop IN
+        controller.currentTrackPosition = 20
+        controller.setLoopIn()
+        #expect(controller.loopStart == 20)
+        #expect(controller.loopEnd == nil)
+        
+        // Setting loop OUT before start position should reset start to current position
+        controller.currentTrackPosition = 10
+        controller.setLoopOut()
+        #expect(controller.loopStart == 10)
+        #expect(controller.loopEnd == nil)
+        
+        // Setting loop OUT after start position
+        controller.currentTrackPosition = 30
+        controller.setLoopOut()
+        #expect(controller.loopStart == 10)
+        #expect(controller.loopEnd == 30)
+        
+        // Clearing loop
+        controller.clearLoop()
+        #expect(controller.loopStart == nil)
+        #expect(controller.loopEnd == nil)
+    }
+
+    @Test("seek(to:) records the time of the seek")
+    func seekRecordsTime() {
+        let controller = makeController()
+        #expect(controller.lastSeekTime == Date.distantPast)
+        
+        controller.seek(to: 50)
+        #expect(Date().timeIntervalSince(controller.lastSeekTime) < 1.0)
+    }
 }
 
 // MARK: - SpotifyController Connection State Tests
@@ -391,7 +453,7 @@ struct SpotifyControllerConnectionStateTests {
 
 // MARK: - SpotifyController Waypoint Management Tests
 
-@Suite("SpotifyController Waypoints")
+@Suite("SpotifyController Waypoints", .serialized)
 @MainActor
 struct SpotifyControllerWaypointTests {
 

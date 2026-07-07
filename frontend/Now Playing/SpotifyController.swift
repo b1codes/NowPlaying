@@ -51,7 +51,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     }
 
     /// Whether the minimalist UI mode is active.
-    @AppStorage("isMinimalistMode") var isMinimalistMode: Bool = false {
+    @AppStorage("isMinimalistMode", store: UserDefaults(suiteName: "group.com.brandonlamer-connolly.nowplaying")) var isMinimalistMode: Bool = false {
         willSet { objectWillChange.send() }
         didSet { saveState() }
     }
@@ -83,6 +83,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     private var volumeObservation: NSKeyValueObservation?
     private var timer: Timer?
     private var bannerTask: Task<Void, Never>?
+    var lastSeekTime: Date = Date.distantPast
 
     private func handleConnectionStateChange() {
         if connectionState == .connected {
@@ -153,6 +154,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     /// Seeks to `seconds` in the current track. Updates `currentTrackPosition` immediately before the SDK call resolves.
     func seek(to seconds: Int) {
         self.currentTrackPosition = seconds
+        self.lastSeekTime = Date()
         appRemote.playerAPI?.seek(toPosition: seconds * 1000, callback: { (_, error) in
             if let error = error {
                 print("Error seeking: \(error.localizedDescription)")
@@ -221,8 +223,14 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     }
 
     private var disconnectCancellable: AnyCancellable?
+    private var minimalistModeCancellable: AnyCancellable?
 
     private func saveState() {
+        // Skip writing state and reloading widgets in unit tests to prevent cross-test interference
+        if NSClassFromString("XCTestCase") != nil {
+            return
+        }
+
         let state = PlaybackState(
             trackName: currentTrackName ?? "Not Playing",
             artistName: currentTrackArtist ?? "Unknown Artist",
@@ -311,7 +319,9 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         self.waypoints = []
         self.appRemote.connectionParameters.accessToken = nil
         stopTimer()
-        PlaybackStateManager.shared.clear()
+        if NSClassFromString("XCTestCase") == nil {
+            PlaybackStateManager.shared.clear()
+        }
         saveState()
     }
 
@@ -386,6 +396,25 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         .receive(on: DispatchQueue.main)
         .sink { _ in
             self.disconnect()
+        }
+
+        // Observe external changes to isMinimalistMode in the shared suite
+        let sharedDefaults = UserDefaults(suiteName: "group.com.brandonlamer-connolly.nowplaying") ?? .standard
+        minimalistModeCancellable = NotificationCenter.default.publisher(
+            for: UserDefaults.didChangeNotification
+        )
+        .sink { [weak self] _ in
+            guard let self = self else { return }
+            let externalValue = sharedDefaults.bool(forKey: "isMinimalistMode")
+            if self.isMinimalistMode != externalValue {
+                if Thread.isMainThread {
+                    self.isMinimalistMode = externalValue
+                } else {
+                    DispatchQueue.main.async {
+                        self.isMinimalistMode = externalValue
+                    }
+                }
+            }
         }
     }
 
@@ -676,8 +705,12 @@ extension SpotifyController: @preconcurrency SPTAppRemotePlayerStateDelegate {
             let oldURI = self.currentTrackURI
             self.currentTrackURI = playerState.track.uri
 
-            if oldURI != self.currentTrackURI, let newURI = self.currentTrackURI {
-                loadWaypoints(for: newURI)
+            if oldURI != self.currentTrackURI {
+                self.loopStart = nil
+                self.loopEnd = nil
+                if let newURI = self.currentTrackURI {
+                    loadWaypoints(for: newURI)
+                }
             }
 
             self.currentTrackName = playerState.track.name
@@ -688,7 +721,11 @@ extension SpotifyController: @preconcurrency SPTAppRemotePlayerStateDelegate {
             self.repeatMode = playerState.playbackOptions.repeatMode.rawValue
 
             // [NEW] Update position and manage timer
-            self.currentTrackPosition = Int(playerState.playbackPosition) / 1000
+            // Only update position from SDK if we didn't seek very recently (within 2 seconds)
+            // to avoid overwriting the local position with stale SDK positions due to latency.
+            if Date().timeIntervalSince(self.lastSeekTime) > 2.0 {
+                self.currentTrackPosition = Int(playerState.playbackPosition) / 1000
+            }
 
             if self.isPaused {
                 stopTimer()

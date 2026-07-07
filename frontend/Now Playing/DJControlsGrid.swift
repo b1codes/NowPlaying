@@ -46,6 +46,15 @@ struct HotCuePad: View {
                 )
                 .shadow(radius: 2)
         }
+        .contextMenu {
+            if index < spotifyController.waypoints.count {
+                Button(role: .destructive) {
+                    spotifyController.removeWaypoint(spotifyController.waypoints[index])
+                } label: {
+                    Label("Clear Hot Cue", systemImage: "trash")
+                }
+            }
+        }
     }
     
     private var padColor: Color {

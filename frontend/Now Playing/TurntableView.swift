@@ -4,6 +4,7 @@ struct TurntableView: View {
     @EnvironmentObject var spotifyController: SpotifyController
     @State private var rotation: Double = 0
     let trackImage: UIImage
+    let namespace: Namespace.ID
     
     // Timer to drive the rotation when not paused
     let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
@@ -21,6 +22,7 @@ struct TurntableView: View {
                     .frame(width: 15, height: 15)
             )
             .shadow(color: .black.opacity(0.5), radius: 15, x: 0, y: 10)
+            .matchedGeometryEffect(id: "albumArt", in: namespace)
             .rotationEffect(.degrees(rotation))
             .onReceive(timer) { _ in
                 if !spotifyController.isPaused {
@@ -32,7 +34,8 @@ struct TurntableView: View {
 }
 
 #Preview {
-    TurntableView(trackImage: UIImage(systemName: "music.note")!)
+    @Previewable @Namespace var ns
+    TurntableView(trackImage: UIImage(systemName: "music.note")!, namespace: ns)
         .environmentObject(SpotifyController.shared)
         .background(Color.black)
 }

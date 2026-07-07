@@ -73,6 +73,7 @@ struct MinimalistWaypointDock: View {
                                 .fill(waypoint.color)
                                 .frame(width: 40, height: 40)
                                 .shadow(color: waypoint.color.opacity(0.5), radius: 8)
+                                .matchedGeometryEffect(id: "waypointCircle-\(waypoint.id.uuidString)", in: namespace)
                         }
                     }
                 }
