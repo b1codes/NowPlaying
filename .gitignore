@@ -9,3 +9,11 @@ GEMINI.md
 .gemini/
 .agent/
 agent.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
