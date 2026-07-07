@@ -28,6 +28,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     let spotifyRedirectURL = URL(
         string: "spotify-ios-quick-start://spotify-login-callback"
     )!
+    let backendURL = "http://localhost:8000"
 
     var accessToken: String?
 
@@ -328,7 +329,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     private func fetchUserProfile() {
         guard let accessToken = self.accessToken else { return }
 
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/me")!)
+        var request = URLRequest(url: URL(string: "\(backendURL)/api/v1/spotify/me")!)
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         URLSession.shared.dataTask(with: request) { data, _, error in
