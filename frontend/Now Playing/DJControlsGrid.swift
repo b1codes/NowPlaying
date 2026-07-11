@@ -36,7 +36,7 @@ struct HotCuePad: View {
                 spotifyController.addWaypoint()
             }
         }) {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: CornerRadius.sm)
                 .fill(padColor)
                 .frame(height: 60)
                 .overlay(
@@ -46,6 +46,8 @@ struct HotCuePad: View {
                 )
                 .shadow(radius: 2)
         }
+        .accessibilityLabel("Hot Cue \(index + 1)")
+        .accessibilityValue(index < spotifyController.waypoints.count ? "Set, \(spotifyController.waypoints[index].position.formatAsTime())" : "Empty, tap to set")
         .contextMenu {
             if index < spotifyController.waypoints.count {
                 Button(role: .destructive) {
@@ -70,12 +72,24 @@ struct LoopInPad: View {
     
     var body: some View {
         Button(action: { spotifyController.setLoopIn() }) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(spotifyController.loopStart != nil ? Color.orange : .white.opacity(0.1))
+            RoundedRectangle(cornerRadius: CornerRadius.sm)
+                .fill(spotifyController.loopStart != nil ? Color.stateMarkerOrange : .white.opacity(0.1))
                 .frame(height: 60)
-                .overlay(Text("IN").font(.caption.bold()).foregroundColor(.white))
+                .overlay(
+                    VStack(spacing: 2) {
+                        if spotifyController.loopStart != nil {
+                            Image(systemName: "checkmark")
+                                .font(.caption2.bold())
+                        }
+                        Text("IN").font(.caption.bold())
+                    }
+                    .foregroundColor(.inkPrimary)
+                )
                 .shadow(radius: 2)
         }
+        .accessibilityLabel("Loop In Point")
+        .accessibilityValue(spotifyController.loopStart != nil ? "Set" : "Not set")
+        .accessibilityAddTraits(spotifyController.loopStart != nil ? .isSelected : [])
     }
 }
 
@@ -90,16 +104,19 @@ struct LoopOutPad: View {
                 spotifyController.setLoopOut()
             }
         }) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(spotifyController.loopEnd != nil ? Color.orange : .white.opacity(0.1))
+            RoundedRectangle(cornerRadius: CornerRadius.sm)
+                .fill(spotifyController.loopEnd != nil ? Color.stateMarkerOrange : .white.opacity(0.1))
                 .frame(height: 60)
                 .overlay(
                     Text(spotifyController.loopEnd != nil ? "CLEAR" : "OUT")
                         .font(.caption.bold())
-                        .foregroundColor(.white)
+                        .foregroundColor(.inkPrimary)
                 )
                 .shadow(radius: 2)
         }
+        .accessibilityLabel(spotifyController.loopEnd != nil ? "Clear Loop" : "Loop Out Point")
+        .accessibilityValue(spotifyController.loopEnd != nil ? "Set" : "Not set")
+        .accessibilityAddTraits(spotifyController.loopEnd != nil ? .isSelected : [])
     }
 }
 

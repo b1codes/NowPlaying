@@ -24,9 +24,14 @@ struct AuthorizationView: View {
             }
             .font(.headline)
             .padding()
-            .foregroundColor(.white)
+            // White text on system green measures ~2.2:1 — well under the 4.5:1 WCAG AA
+            // minimum for this app's very first interactive control. Black text on the
+            // same green passes comfortably (~9.6:1) and matches Spotify's own convention
+            // of dark text on their brand green.
+            .foregroundColor(.black)
             .background(Color.green)
-            .cornerRadius(20)
+            .cornerRadius(CornerRadius.lg)
+            .accessibilityLabel("Connect to Spotify")
 
             if spotifyController.connectionState == .failed {
                 Text("Could not connect to Spotify.\nMake sure the Spotify app is open.")

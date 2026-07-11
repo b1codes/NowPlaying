@@ -40,12 +40,20 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
     @Published var currentTrackArtist: String?
     /// Duration of the current track in seconds.
     @Published var currentTrackDuration: Int?
-    /// JPEG data of the 300×300 album art for the current track.
+    /// JPEG data of the 300×300 album art for the current track. Kept only for the widget's
+    /// shared-container persistence — views should read `currentTrackImageDecoded` instead of
+    /// re-decoding this on every render.
     @Published var currentTrackImage: Data?
+    /// Decoded album art, cached alongside `currentTrackImage` so SwiftUI views never call
+    /// `UIImage(data:)` in `body` (that re-runs on every unrelated `@Published` change, e.g.
+    /// the once-per-second position tick, re-decoding + re-blurring the same bytes).
+    @Published var currentTrackImageDecoded: UIImage?
     /// Display name fetched from the Spotify `/v1/me` user profile endpoint.
     @Published var currentUserDisplayName: String?
     /// Profile photo data fetched from the Spotify user profile.
     @Published var currentUserImage: Data?
+    /// Decoded profile photo, cached for the same reason as `currentTrackImageDecoded`.
+    @Published var currentUserImageDecoded: UIImage?
     /// Whether Spotify playback is currently paused. Changes persist state to the shared App Group.
     @Published var isPaused: Bool = true {
         didSet { saveState() }
@@ -128,11 +136,6 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
 
     private var connectCancellable: AnyCancellable?
 
-    // Predefined colors for waypoints
-    private let waypointColors = [
-        "#FF5E5E", "#FFBB5C", "#FFD93D", "#6BCB77", "#4D96FF", "#B983FF", "#FF869E", "#54BAB9"
-    ]
-
     private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
         UIImpactFeedbackGenerator(style: style).impactOccurred()
     }
@@ -144,7 +147,7 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         guard !waypoints.contains(where: { $0.position == position }) else { return }
         haptic(.medium)
 
-        let colorHex = waypointColors[waypoints.count % waypointColors.count]
+        let colorHex = Waypoint.paletteHexes[waypoints.count % Waypoint.paletteHexes.count]
         let newWaypoint = Waypoint(position: position, colorHex: colorHex)
         waypoints.append(newWaypoint)
         waypoints.sort { $0.position < $1.position }
@@ -314,8 +317,10 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
         self.currentTrackName = nil
         self.currentTrackArtist = nil
         self.currentTrackImage = nil
+        self.currentTrackImageDecoded = nil
         self.currentUserDisplayName = nil
         self.currentUserImage = nil
+        self.currentUserImageDecoded = nil
         self.currentTrackURI = nil
         self.waypoints = []
         self.appRemote.connectionParameters.accessToken = nil
@@ -361,8 +366,10 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }
+            let decoded = UIImage(data: data)
             DispatchQueue.main.async {
                 self.currentUserImage = data
+                self.currentUserImageDecoded = decoded
             }
         }.resume()
     }
@@ -441,8 +448,12 @@ final class SpotifyController: NSObject, ObservableObject, PlaybackControlling {
                                 "Error fetching track image: \(error.localizedDescription)"
                             )
                         } else if let image = image as? UIImage {
+                            let jpegData = image.jpegData(compressionQuality: 1.0)
                             DispatchQueue.main.async {
-                                self.currentTrackImage = image.jpegData(compressionQuality: 1.0)
+                                self.currentTrackImage = jpegData
+                                // The SDK already handed us a decoded UIImage — reuse it
+                                // directly instead of re-decoding the JPEG bytes in every view.
+                                self.currentTrackImageDecoded = image
                             }
                         }
                     }

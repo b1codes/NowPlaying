@@ -24,6 +24,7 @@
 		71D4C6502F5470CC008D372F /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D4C63D2F5465A7008D372F /* PlaybackState.swift */; };
 		71D4C6512F5470CC008D372F /* PlaybackControlIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D4C63F2F5465AD008D372F /* PlaybackControlIntents.swift */; };
 		71D4C6542F54C171008D372F /* Waypoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D4C6532F54C171008D372F /* Waypoint.swift */; };
+		C00D8EA7F19CBB7A3AEA6431 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E90730470FADF955F6BDF53 /* DesignTokens.swift */; };
 		CA265FF72C495B4900C1B3DB /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = CA265FF62C495B4900C1B3DB /* SpotifyiOS */; };
 		CA265FFF2C4AD73500C1B3DB /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA265FFE2C4AD73500C1B3DB /* SpotifyController.swift */; };
 		CAA270E52AE99C3B007D9E3E /* Now_PlayingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA270E42AE99C3B007D9E3E /* Now_PlayingApp.swift */; };
@@ -124,6 +125,7 @@
 		71D4C6452F54B8CA008D372F /* Now Playing.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Now Playing.entitlements"; sourceTree = "<group>"; };
 		71D4C6462F54B909008D372F /* iOS WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "iOS WidgetExtension.entitlements"; sourceTree = "<group>"; };
 		71D4C6532F54C171008D372F /* Waypoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waypoint.swift; sourceTree = "<group>"; };
+		8E90730470FADF955F6BDF53 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		CA265FF92C4960A600C1B3DB /* Sample.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Sample.xcconfig; sourceTree = "<group>"; };
 		CA265FFA2C497B3800C1B3DB /* Now-Playing-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Now-Playing-Info.plist"; sourceTree = SOURCE_ROOT; };
 		CA265FFE2C4AD73500C1B3DB /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 				71D4C63D2F5465A7008D372F /* PlaybackState.swift */,
 				71D4C63F2F5465AD008D372F /* PlaybackControlIntents.swift */,
 				71D4C6532F54C171008D372F /* Waypoint.swift */,
+				8E90730470FADF955F6BDF53 /* DesignTokens.swift */,
 				715565EF2FA671E80068F8FC /* DJControlsGrid.swift */,
 				715565F12FA671EF0068F8FC /* TurntableView.swift */,
 				715565F32FA6775F0068F8FC /* MinimalistView.swift */,
@@ -616,6 +619,7 @@
 				715565F62FA67AE30068F8FC /* MinimalistIntent.swift in Sources */,
 				71A64ADD2F09FE37000C384A /* AuthorizationView.swift in Sources */,
 				71D4C6542F54C171008D372F /* Waypoint.swift in Sources */,
+				C00D8EA7F19CBB7A3AEA6431 /* DesignTokens.swift in Sources */,
 				71D4C63E2F5465A7008D372F /* PlaybackState.swift in Sources */,
 				71D4C6402F5465AD008D372F /* PlaybackControlIntents.swift in Sources */,
 				CAA270E52AE99C3B007D9E3E /* Now_PlayingApp.swift in Sources */,

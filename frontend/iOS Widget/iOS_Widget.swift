@@ -73,24 +73,38 @@ struct IOSWidgetEntryView: View {
                 Spacer()
             }
 
-            HStack(spacing: 24) {
+            // Three buttons + album art must fit systemSmall's constrained width, so touch
+            // targets can't reach the full 44pt HIG minimum here — three 44pt frames would
+            // overflow. Instead, tighter spacing (24pt → 6pt) is spent on symmetric padding
+            // per icon, so the row's total width matches what already rendered here (title2/
+            // title3 icons, 24pt gaps) rather than guessing a wider one.
+            HStack(spacing: 6) {
                 Button(intent: SkipPreviousIntent()) {
                     Image(systemName: "backward.fill")
                         .font(.title3)
+                        .padding(6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Previous Track")
 
                 Button(intent: PlayPauseIntent()) {
                     Image(systemName: entry.state.isPaused ? "play.fill" : "pause.fill")
                         .font(.title2)
+                        .padding(6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(entry.state.isPaused ? "Play" : "Pause")
 
                 Button(intent: SkipNextIntent()) {
                     Image(systemName: "forward.fill")
                         .font(.title3)
+                        .padding(6)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Next Track")
             }
             .padding(.top, 4)
         }

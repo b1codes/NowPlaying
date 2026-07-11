@@ -10,6 +10,11 @@ GEMINI.md
 .agent/
 agent.md
 
+# impeccable Generated
+PRODUCT.md
+DESIGN.md
+.impeccable/
+
 # Python
 __pycache__/
 *.py[cod]

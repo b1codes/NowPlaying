@@ -17,6 +17,21 @@ struct Waypoint: Identifiable, Codable, Equatable {
         Color(hex: colorHex) ?? .blue
     }
 
+    /// Descriptive name for the waypoint's color, for VoiceOver — color alone isn't an accessible identifier.
+    var colorName: String {
+        Waypoint.palette.first { $0.hex == colorHex.uppercased() }?.name ?? "Custom"
+    }
+
+    /// The canonical 8 waypoint color swatches — single source of truth for `SpotifyController`
+    /// (color assignment on `addWaypoint`), `WaypointEditSheet` (the color picker), and
+    /// `colorName` above. Previously duplicated verbatim across all three call sites.
+    static let palette: [(hex: String, name: String)] = [
+        ("#FF5E5E", "Coral"), ("#FFBB5C", "Amber"), ("#FFD93D", "Lemon"), ("#6BCB77", "Mint"),
+        ("#4D96FF", "Sky"), ("#B983FF", "Lavender"), ("#FF869E", "Blush"), ("#54BAB9", "Teal")
+    ]
+
+    static var paletteHexes: [String] { palette.map(\.hex) }
+
     init(id: UUID = UUID(), position: Int, colorHex: String, label: String? = nil) {
         self.id = id
         self.position = position

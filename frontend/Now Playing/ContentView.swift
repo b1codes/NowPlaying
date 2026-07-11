@@ -17,6 +17,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @EnvironmentObject var spotifyController: SpotifyController
     @Namespace private var minimalistNamespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @AppStorage("appTheme") private var appTheme: AppTheme = .album
     @AppStorage("blurRadius") private var blurRadius: Double = 40.0
@@ -25,6 +26,14 @@ struct ContentView: View {
 
     @State private var showingThemeSettings = false
     @State private var scrubbingPosition: Double?
+
+    /// The toolbar (account menu, settings, volume) sits over the app's own `appTheme`
+    /// background, not the system Light/Dark Mode — so its foreground must be derived from
+    /// `appTheme`, never `.primary`/`.secondary`, or it can render invisible (e.g. black-on-black
+    /// when in-app Dark theme is picked while the device is in system Light Mode).
+    private var toolbarForegroundColor: Color {
+        appTheme == .light ? .black : .white
+    }
 
     var body: some View {
         NavigationView {
@@ -45,9 +54,8 @@ struct ContentView: View {
                             VStack {
                                 if let trackName = spotifyController.currentTrackName,
                                    let trackArtist = spotifyController.currentTrackArtist,
-                                   let trackImageData = spotifyController.currentTrackImage,
-                                   let trackImage = UIImage(data: trackImageData) {
-                                    
+                                   let trackImage = spotifyController.currentTrackImageDecoded {
+
                                     if isAdvancedMode {
                                         TurntableView(trackImage: trackImage, namespace: minimalistNamespace)
                                     } else {
@@ -56,7 +64,7 @@ struct ContentView: View {
                                             .resizable()
                                             .scaledToFill()
                                             .frame(width: 200, height: 200)
-                                            .cornerRadius(20)
+                                            .cornerRadius(CornerRadius.lg)
                                             .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                                             .matchedGeometryEffect(id: "albumArt", in: minimalistNamespace)
                                             .trackTransition(id: spotifyController.currentTrackURI, duration: 0.4)
@@ -68,7 +76,7 @@ struct ContentView: View {
                                         .fontWeight(.bold)
                                         .lineLimit(1)
                                         .multilineTextAlignment(.center)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.inkPrimary)
                                         .frame(width: 250)
                                         .shadow(radius: 2)
                                         .trackTransition(id: spotifyController.currentTrackURI)
@@ -78,7 +86,7 @@ struct ContentView: View {
                                         .font(.headline)
                                         .lineLimit(1)
                                         .multilineTextAlignment(.center)
-                                        .foregroundColor(.white.opacity(0.9))
+                                        .foregroundColor(.inkSecondary)
                                         .frame(width: 250)
                                         .shadow(radius: 2)
                                         .trackTransition(id: spotifyController.currentTrackURI)
@@ -104,13 +112,13 @@ struct ContentView: View {
                                             Button(action: { spotifyController.skipBackward() }) {
                                                 Image(systemName: "gobackward.\(skipInterval)")
                                                     .font(.title)
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(.inkPrimary)
                                             }
 
                                             Button(action: { spotifyController.skipForward() }) {
                                                 Image(systemName: "goforward.\(skipInterval)")
                                                     .font(.title)
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(.inkPrimary)
                                             }
                                         }
                                         .padding(.top, 5)
@@ -118,7 +126,7 @@ struct ContentView: View {
 
                                 } else {
                                     ProgressView()
-                                        .tint(.white)
+                                        .tint(.inkPrimary)
                                         .frame(width: 250, height: 400)
                                 }
                             }
@@ -130,24 +138,24 @@ struct ContentView: View {
                             // Disconnected banner
                             if spotifyController.showDisconnectBanner {
                                 DisconnectedBanner()
-                                    .transition(.slideUpFade)
+                                    .transition(reduceMotion ? .opacity : .slideUpFade)
                             }
 
                             // Waypoint Dock
                             if !spotifyController.waypoints.isEmpty {
                                 WaypointDock(namespace: minimalistNamespace)
-                                    .transition(.slideUpFade)
+                                    .transition(reduceMotion ? .opacity : .slideUpFade)
                             }
                         }
                         .padding(20)
-                        .animation(.spring(response: 0.45, dampingFraction: 0.78), value: spotifyController.waypoints.isEmpty)
+                        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.45, dampingFraction: 0.78), value: spotifyController.waypoints.isEmpty)
                         .animation(.easeInOut(duration: 0.3), value: !spotifyController.showDisconnectBanner)
 
                         Spacer()
                     }
                 }
             }
-            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: spotifyController.isMinimalistMode)
+            .animation(reduceMotion ? .easeInOut(duration: 0.25) : .spring(response: 0.5, dampingFraction: 0.8), value: spotifyController.isMinimalistMode)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 spotifyController.skipInterval = skipInterval
@@ -157,11 +165,11 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    AccountMenu()
+                    AccountMenu(foregroundColor: toolbarForegroundColor)
                 }
 
                 ToolbarItem(placement: .principal) {
-                    VolumeIndicator()
+                    VolumeIndicator(foregroundColor: toolbarForegroundColor)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -170,7 +178,8 @@ struct ContentView: View {
                         appTheme: $appTheme,
                         skipInterval: $skipInterval,
                         blurRadius: $blurRadius,
-                        isAdvancedMode: $isAdvancedMode
+                        isAdvancedMode: $isAdvancedMode,
+                        foregroundColor: toolbarForegroundColor
                     )
                 }
             }
@@ -183,6 +192,7 @@ struct ContentView: View {
 struct AccountMenu: View {
     @EnvironmentObject var spotifyController: SpotifyController
     @State private var isSyncing = false
+    let foregroundColor: Color
 
     var body: some View {
         Menu {
@@ -205,8 +215,7 @@ struct AccountMenu: View {
             }
         } label: {
             ZStack {
-                if let userImageData = spotifyController.currentUserImage,
-                   let userImage = UIImage(data: userImageData) {
+                if let userImage = spotifyController.currentUserImageDecoded {
                     Image(uiImage: userImage)
                         .resizable()
                         .scaledToFill()
@@ -217,7 +226,7 @@ struct AccountMenu: View {
                 } else {
                     Image(systemName: "person.circle")
                         .font(.title3)
-                        .foregroundColor(.primary)
+                        .foregroundColor(foregroundColor)
                         .opacity(isSyncing ? 0.4 : 1.0)
                         .animation(.easeInOut(duration: 0.2), value: isSyncing)
                 }
@@ -225,12 +234,25 @@ struct AccountMenu: View {
                 if isSyncing {
                     ProgressView()
                         .progressViewStyle(.circular)
-                        .tint(.primary)
+                        .tint(foregroundColor)
                         .scaleEffect(0.7)
                         .transition(.opacity)
                 }
             }
+            .padding(6)
+            .background(
+                // Bare .ultraThinMaterial washes out over bright/warm Album Art backgrounds —
+                // confirmed by rendering it against synthetic bright artwork. A scrim underneath
+                // (matching the dark overlay BackgroundLayer already applies to the album art
+                // itself) gives a contrast floor that holds regardless of backdrop brightness.
+                ZStack {
+                    Circle().fill(Color.black.opacity(0.3))
+                    Circle().fill(.ultraThinMaterial)
+                }
+            )
         }
+        .accessibilityLabel("Account")
+        .accessibilityValue(spotifyController.currentUserDisplayName ?? "Not signed in")
     }
 
     private func resync() {
@@ -244,19 +266,33 @@ struct AccountMenu: View {
 
 struct SettingsButton: View {
     @EnvironmentObject var spotifyController: SpotifyController
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var showingThemeSettings: Bool
     @Binding var appTheme: AppTheme
     @Binding var skipInterval: Int
     @Binding var blurRadius: Double
     @Binding var isAdvancedMode: Bool
+    let foregroundColor: Color
 
     var body: some View {
         Button {
             showingThemeSettings.toggle()
         } label: {
             Image(systemName: "gear")
-                .foregroundColor(.primary)
+                .foregroundColor(foregroundColor)
+                .padding(6)
+                .background(
+                // Bare .ultraThinMaterial washes out over bright/warm Album Art backgrounds —
+                // confirmed by rendering it against synthetic bright artwork. A scrim underneath
+                // (matching the dark overlay BackgroundLayer already applies to the album art
+                // itself) gives a contrast floor that holds regardless of backdrop brightness.
+                ZStack {
+                    Circle().fill(Color.black.opacity(0.3))
+                    Circle().fill(.ultraThinMaterial)
+                }
+            )
         }
+        .accessibilityLabel("Settings")
         .popover(isPresented: $showingThemeSettings) {
             ScrollView {
                 VStack(spacing: 20) {
@@ -270,7 +306,7 @@ struct SettingsButton: View {
                         Toggle("Turntable (DJ) Mode", isOn: Binding(
                             get: { isAdvancedMode },
                             set: { newValue in
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.5, dampingFraction: 0.8)) {
                                     isAdvancedMode = newValue
                                 }
                             }
@@ -278,7 +314,7 @@ struct SettingsButton: View {
                         Toggle("Minimalist (Driving) Mode", isOn: Binding(
                             get: { spotifyController.isMinimalistMode },
                             set: { newValue in
-                                withAnimation(.spring()) {
+                                withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring()) {
                                     spotifyController.isMinimalistMode = newValue
                                 }
                             }
@@ -346,12 +382,11 @@ struct BackgroundLayer: View {
         Group {
             switch appTheme {
             case .light:
-                Color.white.ignoresSafeArea()
+                Color.pureWhite.ignoresSafeArea()
             case .dark:
-                Color.black.ignoresSafeArea()
+                Color.voidBlack.ignoresSafeArea()
             case .album:
-                if let trackImageData = spotifyController.currentTrackImage,
-                   let trackImage = UIImage(data: trackImageData) {
+                if let trackImage = spotifyController.currentTrackImageDecoded {
                     Image(uiImage: trackImage)
                         .resizable()
                         .scaledToFill()
@@ -361,7 +396,7 @@ struct BackgroundLayer: View {
                         .overlay(Color.black.opacity(0.3))
                         .trackTransition(id: spotifyController.currentTrackURI, duration: 0.6)
                 } else {
-                    Color.black.ignoresSafeArea()
+                    Color.voidBlack.ignoresSafeArea()
                 }
             }
         }
@@ -377,39 +412,64 @@ struct MainControls: View {
             Button(action: { spotifyController.toggleShuffle() }) {
                 Image(systemName: "shuffle")
                     .font(.body)
-                    .foregroundColor(spotifyController.isShuffling ? .green : .white.opacity(0.6))
+                    .foregroundColor(spotifyController.isShuffling ? .stateActiveGreen : .inkFaint)
+                    .padding(8)
+                    .background(
+                        Circle().fill(spotifyController.isShuffling ? Color.stateActiveGreen.opacity(0.18) : Color.clear)
+                    )
             }
+            .accessibilityLabel("Shuffle")
+            .accessibilityValue(spotifyController.isShuffling ? "On" : "Off")
+            .accessibilityAddTraits(spotifyController.isShuffling ? .isSelected : [])
 
             Button(action: { spotifyController.skipToPrevious() }) {
                 Image(systemName: "backward.fill")
                     .font(.title)
-                    .foregroundColor(.white)
+                    .foregroundColor(.inkPrimary)
             }
             .matchedGeometryEffect(id: "skipBack", in: namespace)
+            .accessibilityLabel("Previous Track")
 
             Button(action: {
                 spotifyController.isPaused ? spotifyController.play() : spotifyController.pause()
             }) {
                 Image(systemName: spotifyController.isPaused ? "play.fill" : "pause.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(.white)
+                    .foregroundColor(.inkPrimary)
                     .contentTransition(.symbolEffect(.replace))
                     .animation(.easeInOut(duration: 0.2), value: spotifyController.isPaused)
             }
             .matchedGeometryEffect(id: "playPause", in: namespace)
+            .accessibilityLabel(spotifyController.isPaused ? "Play" : "Pause")
 
             Button(action: { spotifyController.skipToNext() }) {
                 Image(systemName: "forward.fill")
                     .font(.title)
-                    .foregroundColor(.white)
+                    .foregroundColor(.inkPrimary)
             }
             .matchedGeometryEffect(id: "skipForward", in: namespace)
+            .accessibilityLabel("Next Track")
 
             Button(action: { spotifyController.toggleRepeat() }) {
                 Image(systemName: spotifyController.repeatMode == 1 ? "repeat.1" : "repeat")
                     .font(.body)
-                    .foregroundColor(spotifyController.repeatMode != 0 ? .green : .white.opacity(0.6))
+                    .foregroundColor(spotifyController.repeatMode != 0 ? .stateActiveGreen : .inkFaint)
+                    .padding(8)
+                    .background(
+                        Circle().fill(spotifyController.repeatMode != 0 ? Color.stateActiveGreen.opacity(0.18) : Color.clear)
+                    )
             }
+            .accessibilityLabel("Repeat")
+            .accessibilityValue(repeatModeAccessibilityValue)
+            .accessibilityAddTraits(spotifyController.repeatMode != 0 ? .isSelected : [])
+        }
+    }
+
+    private var repeatModeAccessibilityValue: String {
+        switch spotifyController.repeatMode {
+        case 1: return "Track"
+        case 2: return "All"
+        default: return "Off"
         }
     }
 }
@@ -438,12 +498,12 @@ struct CompactSlider: View {
                 
                 // Active Track
                 RoundedRectangle(cornerRadius: trackHeight / 2)
-                    .fill(Color.white)
+                    .fill(Color.pureWhite)
                     .frame(width: xPos, height: trackHeight)
-                
+
                 // Thumb
                 Circle()
-                    .fill(Color.white)
+                    .fill(Color.pureWhite)
                     .frame(width: thumbRadius * 2, height: thumbRadius * 2)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     .position(x: xPos, y: height / 2)
@@ -551,11 +611,12 @@ struct ProgressBarLayer: View {
 
                 Button(action: { spotifyController.addWaypoint() }) {
                     Image(systemName: "flag.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(.inkPrimary)
                         .font(.caption)
                         .padding(6)
                         .background(Circle().fill(.white.opacity(0.15)))
                 }
+                .accessibilityLabel("Add Waypoint")
 
                 Spacer()
                 Text((spotifyController.currentTrackDuration ?? 0).formatAsTime())
@@ -569,6 +630,7 @@ struct ProgressBarLayer: View {
 
 struct WaypointDock: View {
     @EnvironmentObject var spotifyController: SpotifyController
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let namespace: Namespace.ID
     @State private var editingWaypoint: Waypoint?
 
@@ -577,7 +639,7 @@ struct WaypointDock: View {
             Text("Waypoints")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.inkMuted)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -590,7 +652,7 @@ struct WaypointDock: View {
                                     .matchedGeometryEffect(id: "waypointCircle-\(waypoint.id.uuidString)", in: namespace)
                                 Text(waypoint.position.formatAsTime())
                                     .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.inkPrimary)
                                 if let label = waypoint.label, !label.isEmpty {
                                     Text(label)
                                         .font(.system(size: 8, weight: .regular))
@@ -601,10 +663,12 @@ struct WaypointDock: View {
                             .frame(width: 45)
                             .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
                                     .fill(.white.opacity(0.1))
                             )
                         }
+                        .accessibilityLabel("\(waypoint.colorName) waypoint\(waypoint.label.map { $0.isEmpty ? "" : ", \($0)" } ?? "")")
+                        .accessibilityValue(waypoint.position.formatAsTime())
                         .contextMenu {
                             Button {
                                 editingWaypoint = waypoint
@@ -617,12 +681,12 @@ struct WaypointDock: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
-                        .transition(.chipAppear)
+                        .transition(reduceMotion ? .opacity : .chipAppear)
                     }
                 }
                 .padding(.horizontal, 12)
                 .frame(minWidth: 250)
-                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: spotifyController.waypoints)
+                .animation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(response: 0.35, dampingFraction: 0.7), value: spotifyController.waypoints)
             }
             .frame(height: 60)
         }
@@ -646,11 +710,6 @@ struct WaypointEditSheet: View {
     @State private var selectedColorHex: String
     @Environment(\.dismiss) private var dismiss
 
-    private let colorPalette = [
-        "#FF5E5E", "#FFBB5C", "#FFD93D", "#6BCB77",
-        "#4D96FF", "#B983FF", "#FF869E", "#54BAB9"
-    ]
-
     init(waypoint: Waypoint) {
         self.waypoint = waypoint
         _label = State(initialValue: waypoint.label ?? "")
@@ -666,7 +725,7 @@ struct WaypointEditSheet: View {
 
                 Section("Color") {
                     LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
-                        ForEach(colorPalette, id: \.self) { hex in
+                        ForEach(Waypoint.paletteHexes, id: \.self) { hex in
                             Circle()
                                 .fill(Color(hex: hex) ?? .blue)
                                 .frame(width: 44, height: 44)
@@ -740,7 +799,7 @@ struct DisconnectedBanner: View {
                         EmptyView()
                     }
                 }
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.inkSecondary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .glassBackground()
@@ -754,7 +813,8 @@ struct DisconnectedBanner: View {
 
 struct VolumeIndicator: View {
     @EnvironmentObject var spotifyController: SpotifyController
-    
+    let foregroundColor: Color
+
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "speaker.wave.2.fill")
@@ -764,10 +824,13 @@ struct VolumeIndicator: View {
                 .fontWeight(.medium)
                 .monospacedDigit()
         }
-        .foregroundColor(.primary)
+        .foregroundColor(foregroundColor)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(.ultraThinMaterial, in: Capsule())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Volume")
+        .accessibilityValue("\(Int(spotifyController.currentVolume * 100)) percent")
     }
 }
 
@@ -803,19 +866,19 @@ struct GlassBackground: ViewModifier {
                         .fill(.ultraThinMaterial)
                         .opacity(0.25)
 
-                    Color.white.opacity(0.10)
+                    Color.glassTint
                         .blendMode(.overlay)
                 }
             }
-            .cornerRadius(35)
+            .cornerRadius(CornerRadius.xl)
             .overlay(
-                RoundedRectangle(cornerRadius: 35)
+                RoundedRectangle(cornerRadius: CornerRadius.xl)
                     .stroke(
                         LinearGradient(
                             stops: [
-                                .init(color: .white.opacity(0.5), location: 0.0),
+                                .init(color: .glassBorderStart, location: 0.0),
                                 .init(color: .white.opacity(0.1), location: 0.4),
-                                .init(color: .clear, location: 0.6)
+                                .init(color: .glassBorderEnd, location: 0.6)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing

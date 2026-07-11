@@ -20,26 +20,29 @@ struct MinimalistView: View {
                 Button(action: { spotifyController.skipToPrevious() }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.white)
+                        .foregroundColor(.inkPrimary)
                 }
                 .matchedGeometryEffect(id: "skipBack", in: namespace)
-                
+                .accessibilityLabel("Previous Track")
+
                 Button(action: {
                     spotifyController.isPaused ? spotifyController.play() : spotifyController.pause()
                 }) {
                     Image(systemName: spotifyController.isPaused ? "play.fill" : "pause.fill")
                         .font(.system(size: 100))
-                        .foregroundColor(.white)
+                        .foregroundColor(.inkPrimary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .matchedGeometryEffect(id: "playPause", in: namespace)
-                
+                .accessibilityLabel(spotifyController.isPaused ? "Play" : "Pause")
+
                 Button(action: { spotifyController.skipToNext() }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.white)
+                        .foregroundColor(.inkPrimary)
                 }
                 .matchedGeometryEffect(id: "skipForward", in: namespace)
+                .accessibilityLabel("Next Track")
             }
             .padding(.vertical, 40)
             .padding(.horizontal, 20)
@@ -75,6 +78,14 @@ struct MinimalistWaypointDock: View {
                                 .shadow(color: waypoint.color.opacity(0.5), radius: 8)
                                 .matchedGeometryEffect(id: "waypointCircle-\(waypoint.id.uuidString)", in: namespace)
                         }
+                        // The visible circle stays 40px per DESIGN.md's documented Waypoint
+                        // Marker spec; only the invisible tappable region grows to the 44pt
+                        // minimum touch target — the one place this matters most, since this
+                        // is the driving-mode dock.
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                        .accessibilityLabel("\(waypoint.colorName) waypoint")
+                        .accessibilityValue(waypoint.position.formatAsTime())
                     }
                 }
                 .padding(.horizontal, 25)
